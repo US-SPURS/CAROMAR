@@ -23,7 +23,6 @@ permissions:
   statuses: write
   discussions: write
   attestations: write
-  models: write
   security-events: write 
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
