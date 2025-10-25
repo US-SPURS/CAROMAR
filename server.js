@@ -9,6 +9,7 @@ require('dotenv').config();
 
 // Import utilities
 const logger = require('./utils/logger');
+const RepositoryAnalytics = require('./utils/analytics');
 const {
     isValidGitHubUsername,
     isValidRepositoryName,
@@ -474,6 +475,34 @@ app.get('/api/validate-token', async (req, res) => {
         res.json({
             valid: false,
             error: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// API endpoint to analyze repositories
+app.post('/api/analyze-repos', async (req, res) => {
+    try {
+        const { repositories } = req.body;
+        
+        if (!repositories || !Array.isArray(repositories)) {
+            return res.status(400).json({ error: 'Valid repositories array is required' });
+        }
+        
+        const analytics = new RepositoryAnalytics(repositories);
+        const report = analytics.generateReport();
+        
+        logger.info('Repository analysis completed', { count: repositories.length });
+        
+        res.json({
+            success: true,
+            analysis: report,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Error analyzing repositories', error);
+        res.status(500).json({ 
+            error: 'Failed to analyze repositories',
+            details: error.message
         });
     }
 });
