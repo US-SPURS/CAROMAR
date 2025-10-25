@@ -20,19 +20,22 @@ class RepositoryComparison {
                     repo1: repo1.stargazers_count,
                     repo2: repo2.stargazers_count,
                     difference: repo1.stargazers_count - repo2.stargazers_count,
-                    winner: repo1.stargazers_count > repo2.stargazers_count ? repo1.name : repo2.name
+                    winner: repo1.stargazers_count > repo2.stargazers_count ? repo1.name : 
+                            repo2.stargazers_count > repo1.stargazers_count ? repo2.name : 'tie'
                 },
                 forks: {
                     repo1: repo1.forks_count,
                     repo2: repo2.forks_count,
                     difference: repo1.forks_count - repo2.forks_count,
-                    winner: repo1.forks_count > repo2.forks_count ? repo1.name : repo2.name
+                    winner: repo1.forks_count > repo2.forks_count ? repo1.name : 
+                            repo2.forks_count > repo1.forks_count ? repo2.name : 'tie'
                 },
                 watchers: {
                     repo1: repo1.watchers_count,
                     repo2: repo2.watchers_count,
                     difference: repo1.watchers_count - repo2.watchers_count,
-                    winner: repo1.watchers_count > repo2.watchers_count ? repo1.name : repo2.name
+                    winner: repo1.watchers_count > repo2.watchers_count ? repo1.name : 
+                            repo2.watchers_count > repo1.watchers_count ? repo2.name : 'tie'
                 },
                 size: {
                     repo1: repo1.size,
@@ -74,13 +77,13 @@ class RepositoryComparison {
                     repo1: repo1.created_at,
                     repo2: repo2.created_at,
                     older: new Date(repo1.created_at) < new Date(repo2.created_at) ? repo1.name : repo2.name,
-                    daysDifference: Math.abs((new Date(repo1.created_at) - new Date(repo2.created_at)) / (1000 * 60 * 60 * 24))
+                    daysDifference: Math.floor(Math.abs((new Date(repo1.created_at) - new Date(repo2.created_at)) / (1000 * 60 * 60 * 24)))
                 },
                 updated: {
                     repo1: repo1.updated_at,
                     repo2: repo2.updated_at,
                     moreRecent: new Date(repo1.updated_at) > new Date(repo2.updated_at) ? repo1.name : repo2.name,
-                    daysDifference: Math.abs((new Date(repo1.updated_at) - new Date(repo2.updated_at)) / (1000 * 60 * 60 * 24))
+                    daysDifference: Math.floor(Math.abs((new Date(repo1.updated_at) - new Date(repo2.updated_at)) / (1000 * 60 * 60 * 24)))
                 }
             },
             topics: {
@@ -130,9 +133,12 @@ class RepositoryComparison {
         maxScore += 20;
         const sizeDiff = Math.abs(repo1.size - repo2.size);
         const avgSize = (repo1.size + repo2.size) / 2;
-        if (avgSize > 0) {
+        if (avgSize > 10) { // Only calculate if average size is meaningful
             const sizeRatio = 1 - (sizeDiff / avgSize);
             score += Math.max(0, sizeRatio * 20);
+        } else if (repo1.size === 0 && repo2.size === 0) {
+            // Both empty repos are perfectly similar in size
+            score += 20;
         }
 
         // Visibility similarity (10 points)

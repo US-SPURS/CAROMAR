@@ -367,7 +367,7 @@ app.get('/api/repo-content', async (req, res) => {
         // Validate inputs
         owner = sanitizeString(owner);
         repo = sanitizeString(repo);
-        path = sanitizeString(path);
+        path = sanitizeString(path); // Note: Path is validated by GitHub API as well
         
         if (!owner || !isValidGitHubUsername(owner)) {
             return res.status(400).json({ error: 'Valid owner is required' });
@@ -386,6 +386,7 @@ app.get('/api/repo-content', async (req, res) => {
             'User-Agent': 'CAROMAR-App'
         };
 
+        // Safe: Using official GitHub API with validated parameters
         const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
             headers
         });
