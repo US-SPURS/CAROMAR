@@ -7,6 +7,17 @@ const { execSync } = require('child_process');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Import utilities
+const logger = require('./utils/logger');
+const {
+    isValidGitHubUsername,
+    isValidRepositoryName,
+    isValidGitHubToken,
+    sanitizeString,
+    validatePagination,
+    validateSort
+} = require('./utils/validation');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +33,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// Request logging middleware
+app.use((req, res, next) => {
+    const startTime = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        logger.logResponse(req, res, duration);
+    });
+    next();
+});
+
 app.use('/api/', apiLimiter);
 
 // Set view engine
@@ -36,10 +58,29 @@ app.get('/', (req, res) => {
 // Enhanced API endpoint to search repositories with advanced filtering
 app.get('/api/search-repos', async (req, res) => {
     try {
-        const { username, token, type = 'all', sort = 'updated', per_page = 100, page = 1 } = req.query;
-        if (!username) {
-            return res.status(400).json({ error: 'Username is required' });
+        let { username, token, type = 'all', sort = 'updated', per_page = 100, page = 1 } = req.query;
+        
+        // Validate username
+        username = sanitizeString(username);
+        if (!username || !isValidGitHubUsername(username)) {
+            logger.warn('Invalid username provided', { username });
+            return res.status(400).json({ error: 'Valid username is required' });
         }
+
+        // Validate token format if provided
+        if (token && !isValidGitHubToken(token)) {
+            logger.warn('Invalid token format');
+            return res.status(400).json({ error: 'Invalid token format' });
+        }
+
+        // Validate pagination
+        const pagination = validatePagination(page, per_page);
+        page = pagination.page;
+        per_page = pagination.perPage;
+
+        // Validate sort parameter
+        const allowedSorts = ['updated', 'created', 'pushed', 'full_name'];
+        sort = validateSort(sort, allowedSorts);
 
         const headers = token ? { 
             'Authorization': `token ${token}`,
@@ -117,7 +158,7 @@ app.get('/api/search-repos', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching repositories:', error.message);
+        logger.error('Error fetching repositories', error);
         
         if (error.response?.status === 403) {
             res.status(403).json({ 
@@ -136,13 +177,34 @@ app.get('/api/search-repos', async (req, res) => {
 // Enhanced API endpoint to fork a repository with better error handling
 app.post('/api/fork-repo', async (req, res) => {
     try {
-        const { owner, repo, token, organization } = req.body;
+        let { owner, repo, token, organization } = req.body;
         
-        if (!owner || !repo || !token) {
-            return res.status(400).json({ error: 'Owner, repo, and token are required' });
+        // Validate inputs
+        owner = sanitizeString(owner);
+        repo = sanitizeString(repo);
+        
+        if (!owner || !isValidGitHubUsername(owner)) {
+            return res.status(400).json({ error: 'Valid owner is required' });
+        }
+        
+        if (!repo || !isValidRepositoryName(repo)) {
+            return res.status(400).json({ error: 'Valid repository name is required' });
+        }
+        
+        if (!token || !isValidGitHubToken(token)) {
+            return res.status(400).json({ error: 'Valid token is required' });
+        }
+        
+        if (organization) {
+            organization = sanitizeString(organization);
+            if (!isValidGitHubUsername(organization)) {
+                return res.status(400).json({ error: 'Valid organization name is required' });
+            }
         }
 
         const forkData = organization ? { organization } : {};
+
+        logger.info('Forking repository', { owner, repo, organization });
 
         const response = await axios.post(`https://api.github.com/repos/${owner}/${repo}/forks`, forkData, {
             headers: {
@@ -151,6 +213,8 @@ app.post('/api/fork-repo', async (req, res) => {
                 'User-Agent': 'CAROMAR-App'
             }
         });
+
+        logger.info('Repository forked successfully', { full_name: response.data.full_name });
 
         res.json({ 
             success: true, 
@@ -161,7 +225,7 @@ app.post('/api/fork-repo', async (req, res) => {
             message: 'Repository forked successfully'
         });
     } catch (error) {
-        console.error('Error forking repository:', error.message);
+        logger.error('Error forking repository', error);
         
         let errorMessage = 'Failed to fork repository';
         let statusCode = 500;
@@ -187,11 +251,29 @@ app.post('/api/fork-repo', async (req, res) => {
 // New API endpoint to create a merged repository
 app.post('/api/create-merged-repo', async (req, res) => {
     try {
-        const { name, description, repositories, token, private: isPrivate = false } = req.body;
+        let { name, description, repositories, token, private: isPrivate = false } = req.body;
         
-        if (!name || !repositories || !Array.isArray(repositories) || repositories.length === 0 || !token) {
-            return res.status(400).json({ error: 'Name, repositories array, and token are required' });
+        // Validate inputs
+        name = sanitizeString(name);
+        if (!name || !isValidRepositoryName(name)) {
+            return res.status(400).json({ error: 'Valid repository name is required' });
         }
+        
+        if (!repositories || !Array.isArray(repositories) || repositories.length === 0) {
+            return res.status(400).json({ error: 'At least one repository is required' });
+        }
+        
+        if (repositories.length > 50) {
+            return res.status(400).json({ error: 'Maximum 50 repositories can be merged at once' });
+        }
+        
+        if (!token || !isValidGitHubToken(token)) {
+            return res.status(400).json({ error: 'Valid token is required' });
+        }
+        
+        description = sanitizeString(description);
+
+        logger.info('Creating merged repository', { name, repoCount: repositories.length });
 
         // Create the new repository
         const createRepoResponse = await axios.post('https://api.github.com/user/repos', {
@@ -208,6 +290,8 @@ app.post('/api/create-merged-repo', async (req, res) => {
         });
 
         const newRepo = createRepoResponse.data;
+
+        logger.info('Merged repository created successfully', { full_name: newRepo.full_name });
 
         // Return the created repository info and instructions for manual merge
         // Note: Full git operations would require a more complex server setup with git installed
@@ -237,7 +321,7 @@ app.post('/api/create-merged-repo', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error creating merged repository:', error.message);
+        logger.error('Error creating merged repository', error);
         
         if (error.response?.status === 422) {
             res.status(422).json({ 
@@ -261,10 +345,19 @@ app.post('/api/create-merged-repo', async (req, res) => {
 // API endpoint to get repository content for preview
 app.get('/api/repo-content', async (req, res) => {
     try {
-        const { owner, repo, path = '', token } = req.query;
+        let { owner, repo, path = '', token } = req.query;
         
-        if (!owner || !repo) {
-            return res.status(400).json({ error: 'Owner and repo are required' });
+        // Validate inputs
+        owner = sanitizeString(owner);
+        repo = sanitizeString(repo);
+        path = sanitizeString(path);
+        
+        if (!owner || !isValidGitHubUsername(owner)) {
+            return res.status(400).json({ error: 'Valid owner is required' });
+        }
+        
+        if (!repo || !isValidRepositoryName(repo)) {
+            return res.status(400).json({ error: 'Valid repository name is required' });
         }
 
         const headers = token ? {
@@ -282,7 +375,7 @@ app.get('/api/repo-content', async (req, res) => {
 
         res.json({ content: response.data });
     } catch (error) {
-        console.error('Error fetching repository content:', error.message);
+        logger.error('Error fetching repository content', error);
         res.status(error.response?.status || 500).json({ 
             error: 'Failed to fetch repository content',
             details: error.response?.data?.message || error.message
@@ -295,8 +388,8 @@ app.get('/api/user', async (req, res) => {
     try {
         const { token } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'Token is required' });
+        if (!token || !isValidGitHubToken(token)) {
+            return res.status(400).json({ error: 'Valid token is required' });
         }
 
         const headers = {
@@ -334,7 +427,7 @@ app.get('/api/user', async (req, res) => {
             rate_limit: rateLimitResponse.data.rate
         });
     } catch (error) {
-        console.error('Error fetching user info:', error.message);
+        logger.error('Error fetching user info', error);
         
         if (error.response?.status === 401) {
             res.status(401).json({ error: 'Invalid or expired token' });
@@ -385,6 +478,31 @@ app.get('/api/validate-token', async (req, res) => {
     }
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        version: require('./package.json').version
+    });
+});
+
+// Error handling middleware for undefined routes
+app.use((req, res) => {
+    logger.warn('Route not found', { path: req.path, method: req.method });
+    res.status(404).json({ error: 'Route not found' });
+});
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+    logger.error('Unhandled error', err);
+    res.status(500).json({ 
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`CAROMAR server is running on http://localhost:${PORT}`);
+    logger.info(`CAROMAR server is running on http://localhost:${PORT}`);
 });
