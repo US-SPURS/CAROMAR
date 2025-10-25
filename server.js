@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs').promises;
 const { execSync } = require('child_process');
@@ -10,6 +11,7 @@ require('dotenv').config();
 // Import utilities
 const logger = require('./utils/logger');
 const RepositoryAnalytics = require('./utils/analytics');
+const RepositoryComparison = require('./utils/comparison');
 const {
     isValidGitHubUsername,
     isValidRepositoryName,
@@ -30,9 +32,23 @@ const apiLimiter = rateLimit({
 });
 
 // Middleware
+// Security headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "https://api.github.com"]
+        }
+    }
+}));
+
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // Limit request body size
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
 // Request logging middleware
@@ -502,6 +518,48 @@ app.post('/api/analyze-repos', async (req, res) => {
         logger.error('Error analyzing repositories', error);
         res.status(500).json({ 
             error: 'Failed to analyze repositories',
+            details: error.message
+        });
+    }
+});
+
+// API endpoint to compare repositories
+app.post('/api/compare-repos', async (req, res) => {
+    try {
+        const { repositories, mode = 'two' } = req.body;
+        
+        if (!repositories || !Array.isArray(repositories)) {
+            return res.status(400).json({ error: 'Valid repositories array is required' });
+        }
+        
+        let comparison;
+        
+        if (mode === 'two' && repositories.length === 2) {
+            comparison = RepositoryComparison.compareTwo(repositories[0], repositories[1]);
+        } else if (mode === 'multiple') {
+            comparison = RepositoryComparison.compareMultiple(repositories);
+        } else if (mode === 'best') {
+            const criteria = req.body.criteria || 'stars';
+            comparison = RepositoryComparison.findBest(repositories, criteria);
+        } else {
+            return res.status(400).json({ 
+                error: 'Invalid comparison mode or repository count',
+                details: 'Mode "two" requires exactly 2 repositories'
+            });
+        }
+        
+        logger.info('Repository comparison completed', { mode, count: repositories.length });
+        
+        res.json({
+            success: true,
+            comparison,
+            mode,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Error comparing repositories', error);
+        res.status(500).json({ 
+            error: 'Failed to compare repositories',
             details: error.message
         });
     }
