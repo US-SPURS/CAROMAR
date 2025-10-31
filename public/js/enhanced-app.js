@@ -100,11 +100,57 @@ class EnhancedCaromarApp {
         document.getElementById('execute-action').addEventListener('click', () => {
             this.executeAction();
         });
+
+        // Analytics
+        document.getElementById('run-analytics').addEventListener('click', () => {
+            this.runAnalytics();
+        });
+
+        // Comparison
+        document.getElementById('comparison-mode').addEventListener('change', () => {
+            this.handleComparisonModeChange();
+        });
+
+        document.getElementById('run-comparison').addEventListener('click', () => {
+            this.runComparison();
+        });
     }
 
     setupAdvancedFeatures() {
+        // Setup help modal
+        const helpButton = document.getElementById('help-button');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+
+        const openModal = () => {
+            helpModal.style.display = 'flex';
+            helpModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        };
+
+        const closeModal = () => {
+            helpModal.style.display = 'none';
+            helpModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = ''; // Restore scrolling
+        };
+
+        helpButton.addEventListener('click', openModal);
+        closeHelp.addEventListener('click', closeModal);
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                closeModal();
+            }
+        });
+
         // Setup keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Close modal with Esc
+            if (e.key === 'Escape' && helpModal.getAttribute('aria-hidden') === 'false') {
+                closeModal();
+                return;
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
                     case 'a':
@@ -270,6 +316,8 @@ class EnhancedCaromarApp {
                 this.updateSearchStats(data);
                 
                 document.getElementById('repos-list-section').style.display = 'block';
+                document.getElementById('analytics-section').style.display = 'block';
+                document.getElementById('comparison-section').style.display = 'block';
                 this.showSuccess(`Found ${data.repos.length} repositories for ${username}`);
                 
                 // Update rate limit info
@@ -1054,6 +1102,346 @@ class EnhancedCaromarApp {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 5000);
+    }
+
+    async runAnalytics() {
+        if (this.repositories.length === 0) {
+            this.showError('No repositories to analyze. Please search for repositories first.');
+            return;
+        }
+
+        const selectedRepoIds = Array.from(this.selectedRepos);
+        const reposToAnalyze = selectedRepoIds.length > 0
+            ? this.repositories.filter(repo => selectedRepoIds.includes(repo.id.toString()))
+            : this.repositories;
+
+        if (reposToAnalyze.length === 0) {
+            this.showError('Please select at least one repository to analyze.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/analyze-repos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    repositories: reposToAnalyze
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                this.displayAnalytics(data.analysis);
+                document.getElementById('analytics-section').style.display = 'block';
+                document.getElementById('analytics-section').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                throw new Error(data.error || 'Failed to generate analytics');
+            }
+        } catch (error) {
+            this.showError(`Analytics failed: ${error.message}`);
+        }
+    }
+
+    displayAnalytics(analysis) {
+        const content = document.getElementById('analytics-content');
+        
+        content.innerHTML = `
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Overview</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.totalRepos}</div>
+                            <div class="stat-label">Total Repositories</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.totalStars.toLocaleString()}</div>
+                            <div class="stat-label">Total Stars</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.totalForks.toLocaleString()}</div>
+                            <div class="stat-label">Total Forks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${(analysis.overview.totalSize / 1024).toFixed(2)} MB</div>
+                            <div class="stat-label">Total Size</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Repository Types</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.privateRepos}</div>
+                            <div class="stat-label">Private</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.forkedRepos}</div>
+                            <div class="stat-label">Forked</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.overview.archivedRepos}</div>
+                            <div class="stat-label">Archived</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.active}</div>
+                            <div class="stat-label">Active (7 days)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Language Distribution</h3>
+                    <div class="language-list">
+                        ${Object.entries(analysis.languages).slice(0, 10).map(([lang, count]) => `
+                            <div class="language-item">
+                                <span class="language-name">${lang}</span>
+                                <span class="language-count">${count} repos</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Top Repositories</h3>
+                    <div class="top-repos-list">
+                        ${analysis.topRepositories.map((repo, index) => `
+                            <div class="top-repo-item">
+                                <span class="repo-rank">#${index + 1}</span>
+                                <div class="repo-info">
+                                    <div class="repo-name-top">${repo.name}</div>
+                                    <div class="repo-stats-top">
+                                        ⭐ ${repo.stargazers_count} • 🔀 ${repo.forks_count}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                ${analysis.averages ? `
+                <div class="analytics-card">
+                    <h3>Average Metrics</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.averages.avgStars}</div>
+                            <div class="stat-label">Avg Stars</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.averages.avgForks}</div>
+                            <div class="stat-label">Avg Forks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${analysis.averages.avgWatchers}</div>
+                            <div class="stat-label">Avg Watchers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${(analysis.averages.avgSize / 1024).toFixed(2)} MB</div>
+                            <div class="stat-label">Avg Size</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        content.style.display = 'block';
+    }
+
+    handleComparisonModeChange() {
+        const mode = document.getElementById('comparison-mode').value;
+        const criteriaGroup = document.getElementById('best-criteria-group');
+        
+        if (mode === 'best') {
+            criteriaGroup.style.display = 'block';
+        } else {
+            criteriaGroup.style.display = 'none';
+        }
+    }
+
+    async runComparison() {
+        const selectedRepoIds = Array.from(this.selectedRepos);
+        const selectedRepos = this.repositories.filter(repo => selectedRepoIds.includes(repo.id.toString()));
+        const mode = document.getElementById('comparison-mode').value;
+
+        if (selectedRepos.length === 0) {
+            this.showError('Please select repositories to compare.');
+            return;
+        }
+
+        if (mode === 'two' && selectedRepos.length !== 2) {
+            this.showError('Please select exactly 2 repositories for two-way comparison.');
+            return;
+        }
+
+        if (mode !== 'two' && selectedRepos.length < 2) {
+            this.showError('Please select at least 2 repositories for comparison.');
+            return;
+        }
+
+        try {
+            const requestBody = {
+                repositories: selectedRepos,
+                mode: mode
+            };
+
+            if (mode === 'best') {
+                requestBody.criteria = document.getElementById('best-criteria').value;
+            }
+
+            const response = await fetch('/api/compare-repos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                this.displayComparison(data.comparison, mode);
+                document.getElementById('comparison-section').style.display = 'block';
+                document.getElementById('comparison-section').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                throw new Error(data.error || 'Failed to compare repositories');
+            }
+        } catch (error) {
+            this.showError(`Comparison failed: ${error.message}`);
+        }
+    }
+
+    displayComparison(comparison, mode) {
+        const content = document.getElementById('comparison-content');
+        
+        if (mode === 'two') {
+            content.innerHTML = this.renderTwoWayComparison(comparison);
+        } else if (mode === 'best') {
+            content.innerHTML = this.renderBestComparison(comparison);
+        } else {
+            content.innerHTML = this.renderMultipleComparison(comparison);
+        }
+        
+        content.style.display = 'block';
+    }
+
+    renderTwoWayComparison(comparison) {
+        return `
+            <div class="comparison-two">
+                <h3>Comparing: ${comparison.names.repo1} vs ${comparison.names.repo2}</h3>
+                
+                <div class="comparison-metrics">
+                    <h4>Metrics Comparison</h4>
+                    ${Object.entries(comparison.metrics).map(([metric, data]) => `
+                        <div class="metric-row">
+                            <div class="metric-name">${metric.charAt(0).toUpperCase() + metric.slice(1)}</div>
+                            <div class="metric-values">
+                                <div class="metric-value ${data.winner === comparison.names.repo1 ? 'winner' : ''}">
+                                    ${comparison.names.repo1}: ${data.repo1.toLocaleString()}
+                                </div>
+                                <div class="metric-value ${data.winner === comparison.names.repo2 ? 'winner' : ''}">
+                                    ${comparison.names.repo2}: ${data.repo2.toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="comparison-attributes">
+                    <h4>Attributes</h4>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Attribute</th>
+                            <th>${comparison.names.repo1}</th>
+                            <th>${comparison.names.repo2}</th>
+                        </tr>
+                        ${Object.entries(comparison.attributes).map(([attr, data]) => `
+                            <tr>
+                                <td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td>
+                                <td>${data.repo1}</td>
+                                <td>${data.repo2}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+
+                <div class="similarity-score">
+                    <h4>Similarity Score</h4>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${comparison.similarity}%"></div>
+                        <div class="score-text">${comparison.similarity}%</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderBestComparison(comparison) {
+        return `
+            <div class="comparison-best">
+                <h3>Best Repository by ${comparison.criteria}</h3>
+                
+                <div class="best-repo-card">
+                    <h4>🏆 Winner: ${comparison.best.name}</h4>
+                    <p>${comparison.best.description || 'No description'}</p>
+                    <div class="repo-stats">
+                        ⭐ ${comparison.best.stargazers_count} stars • 
+                        🔀 ${comparison.best.forks_count} forks • 
+                        👁 ${comparison.best.watchers_count} watchers
+                    </div>
+                </div>
+
+                <div class="rankings">
+                    <h4>Complete Rankings</h4>
+                    <table class="ranking-table">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Repository</th>
+                            <th>Value</th>
+                        </tr>
+                        ${comparison.rankings.map(item => `
+                            <tr>
+                                <td>#${item.rank}</td>
+                                <td>${item.name}</td>
+                                <td>${typeof item.value === 'string' ? item.value : item.value.toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    renderMultipleComparison(comparison) {
+        return `
+            <div class="comparison-multiple">
+                <h3>Multiple Repository Comparison</h3>
+                
+                ${Object.entries(comparison).map(([metric, repos]) => `
+                    <div class="metric-comparison">
+                        <h4>${metric.replace('_', ' ').toUpperCase()}</h4>
+                        <table class="comparison-table">
+                            <tr>
+                                <th>Rank</th>
+                                <th>Repository</th>
+                                <th>Value</th>
+                            </tr>
+                            ${repos.map(repo => `
+                                <tr>
+                                    <td>#${repo.rank}</td>
+                                    <td>${repo.name}</td>
+                                    <td>${repo.value.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 }
 

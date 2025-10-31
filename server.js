@@ -3,8 +3,6 @@ const axios = require('axios');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
-const fs = require('fs').promises;
-const { execSync } = require('child_process');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
@@ -36,12 +34,12 @@ const apiLimiter = rateLimit({
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://api.github.com"]
+            defaultSrc: ['\'self\''],
+            styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://cdnjs.cloudflare.com'],
+            scriptSrc: ['\'self\'', '\'unsafe-inline\''],
+            fontSrc: ['\'self\'', 'https://cdnjs.cloudflare.com'],
+            imgSrc: ['\'self\'', 'data:', 'https:'],
+            connectSrc: ['\'self\'', 'https://api.github.com']
         }
     }
 }));
@@ -115,7 +113,7 @@ app.get('/api/search-repos', async (req, res) => {
             if (userResponse.data.type === 'Organization') {
                 endpoint = `https://api.github.com/orgs/${username}/repos`;
             }
-        } catch (error) {
+        } catch (_error) {
             // Fallback to user repos if organization check fails
         }
 
@@ -324,15 +322,16 @@ app.post('/api/create-merged-repo', async (req, res) => {
             message: 'Repository created successfully',
             merge_instructions: {
                 repositories: repositories,
+                note: 'These commands are for manual execution. Always review repository names and URLs before running commands.',
                 steps: [
-                    `git clone ${newRepo.clone_url}`,
-                    `cd ${newRepo.name}`,
+                    'git clone ' + newRepo.clone_url,
+                    'cd ' + sanitizeString(newRepo.name),
                     ...repositories.map(repo => [
-                        `mkdir ${repo.name}`,
-                        `cd ${repo.name}`,
-                        `git clone ${repo.clone_url} .`,
-                        `rm -rf .git`,
-                        `cd ..`
+                        'mkdir "' + sanitizeString(repo.name) + '"',
+                        'cd "' + sanitizeString(repo.name) + '"',
+                        'git clone ' + repo.clone_url + ' .',
+                        'rm -rf .git',
+                        'cd ..'
                     ]).flat()
                 ]
             }
@@ -418,12 +417,6 @@ app.get('/api/user', async (req, res) => {
 
         const userResponse = await axios.get('https://api.github.com/user', { headers });
         
-        // Get additional user stats
-        const reposResponse = await axios.get('https://api.github.com/user/repos', { 
-            headers,
-            params: { per_page: 1 } 
-        });
-
         // Get rate limit info
         const rateLimitResponse = await axios.get('https://api.github.com/rate_limit', { headers });
 
@@ -583,7 +576,7 @@ app.use((req, res) => {
 });
 
 // Global error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
     logger.error('Unhandled error', err);
     res.status(500).json({ 
         error: 'Internal server error',
