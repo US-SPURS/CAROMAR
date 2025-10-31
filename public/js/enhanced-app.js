@@ -122,25 +122,32 @@ class EnhancedCaromarApp {
         const helpModal = document.getElementById('help-modal');
         const closeHelp = document.getElementById('close-help');
 
-        helpButton.addEventListener('click', () => {
+        const openModal = () => {
             helpModal.style.display = 'flex';
-        });
+            helpModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        };
 
-        closeHelp.addEventListener('click', () => {
+        const closeModal = () => {
             helpModal.style.display = 'none';
-        });
+            helpModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = ''; // Restore scrolling
+        };
+
+        helpButton.addEventListener('click', openModal);
+        closeHelp.addEventListener('click', closeModal);
 
         helpModal.addEventListener('click', (e) => {
             if (e.target === helpModal) {
-                helpModal.style.display = 'none';
+                closeModal();
             }
         });
 
         // Setup keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Close modal with Esc
-            if (e.key === 'Escape' && helpModal.style.display === 'flex') {
-                helpModal.style.display = 'none';
+            if (e.key === 'Escape' && helpModal.getAttribute('aria-hidden') === 'false') {
+                closeModal();
                 return;
             }
 

@@ -322,12 +322,13 @@ app.post('/api/create-merged-repo', async (req, res) => {
             message: 'Repository created successfully',
             merge_instructions: {
                 repositories: repositories,
+                note: 'These commands are for manual execution. Always review repository names and URLs before running commands.',
                 steps: [
-                    `git clone ${newRepo.clone_url}`,
-                    `cd ${newRepo.name}`,
+                    'git clone ' + newRepo.clone_url,
+                    'cd ' + sanitizeString(newRepo.name),
                     ...repositories.map(repo => [
-                        'mkdir ' + repo.name,
-                        'cd ' + repo.name,
+                        'mkdir "' + sanitizeString(repo.name) + '"',
+                        'cd "' + sanitizeString(repo.name) + '"',
                         'git clone ' + repo.clone_url + ' .',
                         'rm -rf .git',
                         'cd ..'
