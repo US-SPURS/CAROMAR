@@ -16,9 +16,14 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <header role="banner">
-        <div class="container">
-            <h1><i class="fab fa-github" aria-hidden="true"></i> CAROMAR</h1>
-            <p>Copy A Repository Or Merge All Repositories</p>
+        <div class="container header-content">
+            <div>
+                <h1><i class="fab fa-github" aria-hidden="true"></i> CAROMAR</h1>
+                <p>Copy A Repository Or Merge All Repositories</p>
+            </div>
+            <button id="help-button" class="btn btn-small" aria-label="Show keyboard shortcuts">
+                <i class="fas fa-question-circle"></i> Help
+            </button>
         </div>
     </header>
 
@@ -249,6 +254,53 @@
             <p>&copy; 2024 CAROMAR. A tool for GitHub repository management.</p>
         </div>
     </footer>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div id="help-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button id="close-help" class="close-button" aria-label="Close help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-section">
+                        <h3>Selection</h3>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl/Cmd + A</kbd>
+                            <span>Select all repositories</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl/Cmd + D</kbd>
+                            <span>Deselect all repositories</span>
+                        </div>
+                    </div>
+                    
+                    <div class="shortcut-section">
+                        <h3>Navigation</h3>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl/Cmd + F</kbd>
+                            <span>Focus repository search</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Esc</kbd>
+                            <span>Close this help dialog</span>
+                        </div>
+                    </div>
+                    
+                    <div class="shortcut-section">
+                        <h3>Tips</h3>
+                        <ul class="tips-list">
+                            <li>Click on a repository card to toggle selection</li>
+                            <li>Use filters to narrow down repository list</li>
+                            <li>Export/Import allows you to save and restore selections</li>
+                            <li>Analytics and Comparison work with selected repos or all repos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/enhanced-app.js"></script>
 </body>

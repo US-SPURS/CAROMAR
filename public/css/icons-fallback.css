@@ -38,3 +38,6 @@
 .fas.fa-history::before { content: "📜"; }
 .fas.fa-chart-bar::before { content: "📊"; }
 .fas.fa-lock::before { content: "🔒"; }
+.fas.fa-question-circle::before { content: "❓"; }
+.fas.fa-balance-scale::before { content: "⚖"; }
+.fas.fa-archive::before { content: "📦"; }

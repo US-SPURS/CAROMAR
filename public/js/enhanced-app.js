@@ -117,8 +117,33 @@ class EnhancedCaromarApp {
     }
 
     setupAdvancedFeatures() {
+        // Setup help modal
+        const helpButton = document.getElementById('help-button');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+
+        helpButton.addEventListener('click', () => {
+            helpModal.style.display = 'flex';
+        });
+
+        closeHelp.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.style.display = 'none';
+            }
+        });
+
         // Setup keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Close modal with Esc
+            if (e.key === 'Escape' && helpModal.style.display === 'flex') {
+                helpModal.style.display = 'none';
+                return;
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
                     case 'a':
