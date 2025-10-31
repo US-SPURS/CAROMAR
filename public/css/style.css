@@ -939,3 +939,291 @@ footer {
     50% { opacity: 1; }
     100% { transform: translateX(20px); opacity: 0; }
 }
+
+/* Analytics Section Styles */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.analytics-card {
+    background: #ffffff;
+    border: 1px solid #d1d9e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.analytics-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: #24292f;
+    border-bottom: 2px solid #0969da;
+    padding-bottom: 0.5rem;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f6f8fa;
+    border-radius: 6px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0969da;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #656d76;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.language-list,
+.top-repos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.language-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f6f8fa;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.language-item:hover {
+    background: #eaeef2;
+}
+
+.language-name {
+    font-weight: 500;
+    color: #24292f;
+}
+
+.language-count {
+    color: #656d76;
+    font-size: 0.9rem;
+}
+
+.top-repo-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f6f8fa;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.top-repo-item:hover {
+    background: #eaeef2;
+}
+
+.repo-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0969da;
+    min-width: 40px;
+    text-align: center;
+}
+
+.repo-info {
+    flex: 1;
+}
+
+.repo-name-top {
+    font-weight: 500;
+    color: #24292f;
+    margin-bottom: 0.25rem;
+}
+
+.repo-stats-top {
+    font-size: 0.85rem;
+    color: #656d76;
+}
+
+/* Comparison Section Styles */
+.comparison-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+}
+
+.comparison-controls .input-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.comparison-two,
+.comparison-best,
+.comparison-multiple {
+    margin-top: 1rem;
+}
+
+.comparison-two h3,
+.comparison-best h3,
+.comparison-multiple h3 {
+    color: #24292f;
+    margin-bottom: 1.5rem;
+}
+
+.comparison-metrics,
+.comparison-attributes,
+.similarity-score,
+.rankings,
+.metric-comparison {
+    margin-top: 1.5rem;
+    background: #f6f8fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.comparison-metrics h4,
+.comparison-attributes h4,
+.similarity-score h4,
+.rankings h4,
+.metric-comparison h4 {
+    margin: 0 0 1rem 0;
+    color: #0969da;
+    font-size: 1rem;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.metric-name {
+    font-weight: 600;
+    color: #24292f;
+}
+
+.metric-values {
+    display: flex;
+    gap: 2rem;
+}
+
+.metric-value {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    background: #f6f8fa;
+}
+
+.metric-value.winner {
+    background: #dafbe1;
+    color: #1a7f37;
+    font-weight: 600;
+}
+
+.comparison-table,
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.comparison-table th,
+.ranking-table th {
+    background: #0969da;
+    color: white;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.comparison-table td,
+.ranking-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #d1d9e0;
+}
+
+.comparison-table tr:last-child td,
+.ranking-table tr:last-child td {
+    border-bottom: none;
+}
+
+.comparison-table tr:hover,
+.ranking-table tr:hover {
+    background: #f6f8fa;
+}
+
+.best-repo-card {
+    background: linear-gradient(135deg, #0969da 0%, #0550ae 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.best-repo-card h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.best-repo-card p {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+}
+
+.best-repo-card .repo-stats {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+.score-bar {
+    position: relative;
+    height: 40px;
+    background: #d1d9e0;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1a7f37 0%, #2ea44f 100%);
+    transition: width 1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 1rem;
+}
+
+.score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    color: white;
+    font-size: 1.2rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.section-actions {
+    margin-bottom: 1rem;
+}
