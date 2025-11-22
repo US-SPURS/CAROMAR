@@ -322,7 +322,7 @@ class CaromarApp {
         this.showResults(results);
     }
 
-    async mergeRepositories(repos) {
+    async mergeRepositories(_repos) {
         const mergedRepoName = document.getElementById('merged-repo-name').value.trim();
         
         if (!mergedRepoName) {

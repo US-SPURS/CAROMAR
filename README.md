@@ -163,14 +163,27 @@ The application provides several REST API endpoints:
 CAROMAR/
 ├── public/
 │   ├── css/
-│   │   └── style.css          # Application styling
+│   │   ├── style.css          # Application styling
+│   │   └── icons-fallback.css # Icon fallbacks
 │   └── js/
-│       └── app.js             # Frontend JavaScript logic
+│       ├── app.js             # Basic frontend implementation
+│       └── enhanced-app.js    # Full-featured frontend (used in production)
 ├── views/
 │   └── index.ejs              # Main HTML template
+├── utils/
+│   ├── analytics.js           # Repository analytics utilities
+│   ├── comparison.js          # Repository comparison utilities
+│   ├── logger.js              # Logging utility
+│   └── validation.js          # Input validation utilities
+├── tests/
+│   ├── app.test.js            # API endpoint tests
+│   └── utils.test.js          # Utility function tests
 ├── server.js                  # Express server and API endpoints
 ├── package.json               # Project dependencies
+├── jest.config.js             # Jest testing configuration
+├── eslint.config.js           # ESLint configuration
 ├── .env.example               # Environment variables template
+├── LICENSE                    # MIT License
 └── README.md                  # This file
 ```
 

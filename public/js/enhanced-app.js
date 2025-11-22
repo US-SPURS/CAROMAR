@@ -758,7 +758,7 @@ class EnhancedCaromarApp {
             } else {
                 this.showWarning('Repository name already exists');
             }
-        } catch (error) {
+        } catch {
             this.showError('Failed to check repository availability');
         } finally {
             checkBtn.innerHTML = '<i class="fas fa-check"></i> Check Availability';
@@ -953,7 +953,7 @@ class EnhancedCaromarApp {
         document.getElementById('progress-text').textContent = text;
     }
 
-    showResults(results, operation) {
+    showResults(results, _operation) {
         const resultsSection = document.getElementById('results-section');
         const resultsContent = document.getElementById('results-content');
         
