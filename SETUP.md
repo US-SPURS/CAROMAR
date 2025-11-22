@@ -140,7 +140,8 @@ CAROMAR/
 │   │   ├── style.css              # Main styles
 │   │   └── icons-fallback.css     # Icon fallbacks
 │   └── js/
-│       └── enhanced-app.js        # Frontend logic
+│       ├── app.js                 # Basic frontend implementation
+│       └── enhanced-app.js        # Full-featured frontend (used in production)
 ├── views/
 │   └── index.ejs                  # Main HTML template
 ├── utils/
@@ -153,7 +154,10 @@ CAROMAR/
 │   └── utils.test.js              # Utility function tests
 ├── server.js                       # Express server
 ├── package.json                    # Dependencies
+├── jest.config.js                  # Jest testing configuration
+├── eslint.config.js                # ESLint configuration
 ├── .env                           # Environment configuration
+├── LICENSE                         # MIT License
 └── README.md                       # Main documentation
 ```
 

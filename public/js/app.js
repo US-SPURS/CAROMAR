@@ -1,3 +1,19 @@
+/**
+ * CAROMAR - Basic Frontend Implementation
+ * 
+ * Note: This is a simplified version of the frontend application.
+ * The production version uses enhanced-app.js (EnhancedCaromarApp) 
+ * which includes additional features like:
+ * - Advanced filtering and sorting
+ * - Repository analytics and comparison
+ * - Import/Export functionality
+ * - Auto-save and local storage
+ * - Keyboard shortcuts
+ * 
+ * This file is maintained as a reference implementation showing
+ * the core functionality in a simpler form.
+ */
+
 class CaromarApp {
     constructor() {
         this.githubToken = null;
