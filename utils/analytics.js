@@ -118,29 +118,29 @@ class RepositoryAnalytics {
      */
     getSpecialRepos(type) {
         switch (type) {
-            case 'trending':
-                // Repos with high stars and recent activity
-                return this.repositories
-                    .filter(r => r.stargazers_count > 10)
-                    .filter(r => {
-                        const daysSinceUpdate = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24);
-                        return daysSinceUpdate < 30;
-                    })
-                    .sort((a, b) => b.stargazers_count - a.stargazers_count);
-            case 'abandoned':
-                // Repos not updated in over a year
-                return this.repositories.filter(r => {
+        case 'trending':
+            // Repos with high stars and recent activity
+            return this.repositories
+                .filter(r => r.stargazers_count > 10)
+                .filter(r => {
                     const daysSinceUpdate = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24);
-                    return daysSinceUpdate > 365;
-                });
-            case 'active':
-                // Repos updated in the last week
-                return this.repositories.filter(r => {
-                    const daysSinceUpdate = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24);
-                    return daysSinceUpdate < 7;
-                });
-            default:
-                return this.repositories;
+                    return daysSinceUpdate < 30;
+                })
+                .sort((a, b) => b.stargazers_count - a.stargazers_count);
+        case 'abandoned':
+            // Repos not updated in over a year
+            return this.repositories.filter(r => {
+                const daysSinceUpdate = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24);
+                return daysSinceUpdate > 365;
+            });
+        case 'active':
+            // Repos updated in the last week
+            return this.repositories.filter(r => {
+                const daysSinceUpdate = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24);
+                return daysSinceUpdate < 7;
+            });
+        default:
+            return this.repositories;
         }
     }
 

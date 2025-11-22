@@ -113,7 +113,7 @@ app.get('/api/search-repos', async (req, res) => {
             if (userResponse.data.type === 'Organization') {
                 endpoint = `https://api.github.com/orgs/${username}/repos`;
             }
-        } catch (_error) {
+        } catch {
             // Fallback to user repos if organization check fails
         }
 

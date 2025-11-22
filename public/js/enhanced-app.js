@@ -153,18 +153,18 @@ class EnhancedCaromarApp {
 
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
-                    case 'a':
-                        e.preventDefault();
-                        this.selectAllRepos(true);
-                        break;
-                    case 'd':
-                        e.preventDefault();
-                        this.selectAllRepos(false);
-                        break;
-                    case 'f':
-                        e.preventDefault();
-                        document.getElementById('repo-search').focus();
-                        break;
+                case 'a':
+                    e.preventDefault();
+                    this.selectAllRepos(true);
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    this.selectAllRepos(false);
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    document.getElementById('repo-search').focus();
+                    break;
                 }
             }
         });
@@ -486,15 +486,15 @@ class EnhancedCaromarApp {
             // Type filter
             if (repoType !== 'all') {
                 switch(repoType) {
-                    case 'public':
-                        if (repo.private) return false;
-                        break;
-                    case 'private':
-                        if (!repo.private) return false;
-                        break;
-                    case 'owner':
-                        if (repo.fork) return false;
-                        break;
+                case 'public':
+                    if (repo.private) return false;
+                    break;
+                case 'private':
+                    if (!repo.private) return false;
+                    break;
+                case 'owner':
+                    if (repo.fork) return false;
+                    break;
                 }
             }
 
@@ -514,20 +514,20 @@ class EnhancedCaromarApp {
         
         this.filteredRepositories.sort((a, b) => {
             switch(sortBy) {
-                case 'name':
-                    return a.name.localeCompare(b.name);
-                case 'created':
-                    return new Date(b.created_at) - new Date(a.created_at);
-                case 'updated':
-                    return new Date(b.updated_at) - new Date(a.updated_at);
-                case 'pushed':
-                    return new Date(b.pushed_at) - new Date(a.pushed_at);
-                case 'stars':
-                    return b.stargazers_count - a.stargazers_count;
-                case 'size':
-                    return b.size - a.size;
-                default:
-                    return 0;
+            case 'name':
+                return a.name.localeCompare(b.name);
+            case 'created':
+                return new Date(b.created_at) - new Date(a.created_at);
+            case 'updated':
+                return new Date(b.updated_at) - new Date(a.updated_at);
+            case 'pushed':
+                return new Date(b.pushed_at) - new Date(a.pushed_at);
+            case 'stars':
+                return b.stargazers_count - a.stargazers_count;
+            case 'size':
+                return b.size - a.size;
+            default:
+                return 0;
             }
         });
 
@@ -758,7 +758,7 @@ class EnhancedCaromarApp {
             } else {
                 this.showWarning('Repository name already exists');
             }
-        } catch (error) {
+        } catch {
             this.showError('Failed to check repository availability');
         } finally {
             checkBtn.innerHTML = '<i class="fas fa-check"></i> Check Availability';
@@ -953,7 +953,7 @@ class EnhancedCaromarApp {
         document.getElementById('progress-text').textContent = text;
     }
 
-    showResults(results, operation) {
+    showResults(results, _operation) {
         const resultsSection = document.getElementById('results-section');
         const resultsContent = document.getElementById('results-content');
         
