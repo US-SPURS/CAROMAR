@@ -64,7 +64,6 @@ describe('Security Utilities', () => {
 
     describe('RateLimiter', () => {
         let limiter;
-        let intervals = [];
 
         beforeEach(() => {
             limiter = new RateLimiter();

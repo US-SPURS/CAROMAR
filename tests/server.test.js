@@ -9,8 +9,7 @@ const {
     isValidRepositoryName, 
     isValidGitHubToken,
     sanitizeString,
-    validatePagination,
-    validateSort 
+    validatePagination
 } = require('../utils/validation');
 
 // Create a minimal test server

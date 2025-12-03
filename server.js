@@ -16,6 +16,7 @@ require('dotenv').config();
 const logger = require('./utils/logger');
 const RepositoryAnalytics = require('./utils/analytics');
 const RepositoryComparison = require('./utils/comparison');
+const PerformanceMonitor = require('./utils/performance');
 const {
     isValidGitHubUsername,
     isValidRepositoryName,
@@ -27,6 +28,9 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize performance monitor
+const performanceMonitor = new PerformanceMonitor();
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -55,13 +59,17 @@ app.use(express.json({ limit: '10mb' })); // Limit request body size
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
-// Request logging middleware
+// Request logging and performance tracking middleware
 app.use((req, res, next) => {
+    const completeRequest = performanceMonitor.startRequest(req.path, req.method);
     const startTime = Date.now();
+    
     res.on('finish', () => {
         const duration = Date.now() - startTime;
         logger.logResponse(req, res, duration);
+        completeRequest(res.statusCode);
     });
+    
     next();
 });
 
@@ -71,12 +79,30 @@ app.use('/api/', apiLimiter);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Routes
+/**
+ * Routes
+ */
+
+/**
+ * Render main application page
+ * @route GET /
+ * @returns {HTML} Main application page
+ */
 app.get('/', (req, res) => {
     res.render('index');
 });
 
-// Enhanced API endpoint to search repositories with advanced filtering
+/**
+ * Search repositories for a GitHub user or organization
+ * @route GET /api/search-repos
+ * @param {string} req.query.username - GitHub username or organization
+ * @param {string} req.query.token - GitHub Personal Access Token
+ * @param {string} [req.query.type=all] - Repository type filter
+ * @param {string} [req.query.sort=updated] - Sort order
+ * @param {number} [req.query.per_page=100] - Results per page
+ * @param {number} [req.query.page=1] - Page number
+ * @returns {Object} Repository list with pagination info
+ */
 app.get('/api/search-repos', async (req, res) => {
     try {
         let { username, token, type = 'all', sort = 'updated', per_page = 100, page = 1 } = req.query;
@@ -195,7 +221,15 @@ app.get('/api/search-repos', async (req, res) => {
     }
 });
 
-// Enhanced API endpoint to fork a repository with better error handling
+/**
+ * Fork a repository to the authenticated user's account
+ * @route POST /api/fork-repo
+ * @param {string} req.body.owner - Repository owner username
+ * @param {string} req.body.repo - Repository name
+ * @param {string} req.body.token - GitHub Personal Access Token
+ * @param {string} [req.body.organization] - Optional organization to fork to
+ * @returns {Object} Forked repository information
+ */
 app.post('/api/fork-repo', async (req, res) => {
     try {
         let { owner, repo, token, organization } = req.body;
@@ -565,13 +599,39 @@ app.post('/api/compare-repos', async (req, res) => {
     }
 });
 
-// Health check endpoint
+/**
+ * Health check endpoint with performance metrics
+ * @route GET /api/health
+ * @returns {Object} Health status and metrics
+ */
 app.get('/api/health', (req, res) => {
+    const healthStatus = performanceMonitor.getHealthStatus();
     res.json({
-        status: 'healthy',
+        status: healthStatus.status,
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: require('./package.json').version
+        version: require('./package.json').version,
+        performance: {
+            recentErrorRate: healthStatus.recentErrorRate,
+            recentAvgDuration: healthStatus.recentAvgDuration
+        },
+        issues: healthStatus.issues
+    });
+});
+
+/**
+ * Get performance metrics (useful for monitoring)
+ * @route GET /api/metrics
+ * @returns {Object} Performance metrics
+ */
+app.get('/api/metrics', (req, res) => {
+    const summary = performanceMonitor.getSummary();
+    const allMetrics = performanceMonitor.getAllMetrics();
+    
+    res.json({
+        summary,
+        endpoints: allMetrics,
+        timestamp: new Date().toISOString()
     });
 });
 
