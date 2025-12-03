@@ -1,3 +1,9 @@
+/**
+ * CAROMAR Server - Copy A Repository Or Merge All Repositories
+ * A Node.js/Express server for managing GitHub repositories
+ * @module server
+ */
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');

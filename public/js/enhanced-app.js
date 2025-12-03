@@ -1,4 +1,13 @@
+/**
+ * Enhanced CAROMAR Application
+ * Provides comprehensive GitHub repository management features
+ * @class EnhancedCaromarApp
+ */
 class EnhancedCaromarApp {
+    /**
+     * Initialize the CAROMAR application
+     * @constructor
+     */
     constructor() {
         this.githubToken = null;
         this.selectedRepos = new Set();
@@ -11,12 +20,20 @@ class EnhancedCaromarApp {
         this.init();
     }
 
+    /**
+     * Initialize application components
+     * @returns {void}
+     */
     init() {
         this.bindEvents();
         this.loadStoredToken();
         this.setupAdvancedFeatures();
     }
 
+    /**
+     * Bind all event listeners for the application
+     * @returns {void}
+     */
     bindEvents() {
         // Token validation
         document.getElementById('validate-token').addEventListener('click', () => {
@@ -116,6 +133,10 @@ class EnhancedCaromarApp {
         });
     }
 
+    /**
+     * Setup advanced features like keyboard shortcuts and modals
+     * @returns {void}
+     */
     setupAdvancedFeatures() {
         // Setup help modal
         const helpButton = document.getElementById('help-button');
@@ -175,6 +196,10 @@ class EnhancedCaromarApp {
         }, 30000);
     }
 
+    /**
+     * Load stored GitHub token from localStorage
+     * @returns {void}
+     */
     loadStoredToken() {
         const storedToken = localStorage.getItem('github_token');
         if (storedToken) {
@@ -183,6 +208,11 @@ class EnhancedCaromarApp {
         }
     }
 
+    /**
+     * Validate GitHub personal access token
+     * @async
+     * @returns {Promise<void>}
+     */
     async validateToken() {
         const tokenInput = document.getElementById('github-token');
         const validateBtn = document.getElementById('validate-token');
@@ -239,8 +269,20 @@ class EnhancedCaromarApp {
         }
     }
 
+    /**
+     * Display user information in the UI
+     * @param {Object} data - User data from GitHub API
+     * @param {string} data.avatar_url - User's avatar URL
+     * @param {string} data.username - User's username
+     * @param {string} [data.name] - User's display name
+     * @param {string} [data.type] - Account type (User/Organization)
+     * @param {number} data.public_repos - Number of public repositories
+     * @param {number} data.followers - Number of followers
+     * @returns {void}
+     */
     displayUserInfo(data) {
         document.getElementById('user-avatar').src = data.avatar_url;
+        document.getElementById('user-avatar').alt = `${data.username}'s avatar`;
         document.getElementById('user-name').textContent = data.name || data.username;
         
         const userUsername = document.getElementById('user-username');
@@ -254,6 +296,10 @@ class EnhancedCaromarApp {
         document.getElementById('user-info').style.display = 'flex';
     }
 
+    /**
+     * Update the rate limit display in the UI
+     * @returns {void}
+     */
     updateRateLimitDisplay() {
         if (!this.rateLimitInfo) return;
         
@@ -272,6 +318,11 @@ class EnhancedCaromarApp {
         }
     }
 
+    /**
+     * Search for repositories by username
+     * @async
+     * @returns {Promise<void>}
+     */
     async searchRepositories() {
         const usernameInput = document.getElementById('username-input');
         const searchBtn = document.getElementById('search-repos');
