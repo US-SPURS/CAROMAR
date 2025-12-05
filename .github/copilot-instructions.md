@@ -87,7 +87,7 @@ npm run lint:fix     # Auto-fix linting errors
 
 ### Token Handling
 - **Never** log or store GitHub tokens server-side
-- Tokens should only be transmitted via query parameters or request headers
+- **Tokens must never be transmitted via query parameters.** Always transmit GitHub access tokens using secure request headers (e.g., the `Authorization` header) only. Query parameters can be logged by servers, proxies, and browser history, leading to credential leakage.
 - Validate token permissions before operations
 - All token validation happens on the backend via GitHub API
 
