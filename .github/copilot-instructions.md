@@ -110,7 +110,8 @@ npm run lint:fix     # Auto-fix linting errors
 - Monitor and display rate limits to users
 - Handle GitHub API errors gracefully
 - Implement delays between batch operations to respect rate limits
-- Use proper GitHub API endpoints (REST API v3)
+- Use GitHub REST API v3 (the current stable REST API version)
+- Authentication uses Personal Access Tokens with `token` prefix format
 
 ## Common Patterns
 
@@ -138,13 +139,15 @@ res.json({
 ### GitHub API Requests
 ```javascript
 const response = await axios.get(url, {
-  headers: {
-    'Authorization': `token ${token}`,
-    'User-Agent': 'CAROMAR-App',
-    'Accept': 'application/vnd.github.v3+json'
-  }
+    headers: {
+        'Authorization': `token ${token}`,
+        'User-Agent': 'CAROMAR-App',
+        'Accept': 'application/vnd.github.v3+json'
+    }
 });
 ```
+
+**Note**: The codebase currently uses `token ${token}` format for authentication, which is supported by GitHub. While `Bearer ${token}` is the modern recommended format, the existing pattern works correctly with GitHub's REST API v3.
 
 ## File Organization
 
