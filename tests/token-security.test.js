@@ -81,9 +81,8 @@ app.get('/api/search-repos', (req, res) => {
 app.get('/api/repo-content', (req, res) => {
     const { owner, repo } = req.query;
     
-    // Extract token from Authorization header (optional for public repos)
-    // eslint-disable-next-line no-unused-vars
-    const authHeader = req.headers.authorization;
+    // Note: Token extraction via Authorization header is supported but not used in this mock
+    // In the real implementation, it would be used to increase rate limits
     
     if (!owner) {
         return res.status(400).json({ error: 'Valid owner is required' });
@@ -279,7 +278,7 @@ describe('Token Security - Prevent Leakage Scenarios', () => {
             validToken,                    // No scheme
             `Token ${validToken}`,         // Wrong scheme
             `Basic ${validToken}`,         // Wrong scheme
-            `bearer ${validToken}`,        // Lowercase (should be handled gracefully)
+            `bearer ${validToken}`,        // Lowercase (case-sensitive, must be 'Bearer')
         ];
 
         for (const format of invalidFormats) {
@@ -291,13 +290,12 @@ describe('Token Security - Prevent Leakage Scenarios', () => {
         }
     });
 
-    it('should handle Bearer with lowercase gracefully', async () => {
-        // Some implementations might accept lowercase 'bearer'
+    it('should reject lowercase bearer scheme', async () => {
+        // Our implementation requires 'Bearer' with capital B (case-sensitive)
         const res = await request(app)
             .get('/api/user')
             .set('Authorization', `bearer ${validToken}`);
         
-        // Should fail since our implementation requires 'Bearer' with capital B
         expect(res.statusCode).toBe(400);
     });
 });
