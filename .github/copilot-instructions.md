@@ -11,7 +11,7 @@ CAROMAR (Copy A Repository Or Merge All Repositories) is a web application for m
 - **Template Engine**: EJS
 - **HTTP Client**: Axios for GitHub API integration
 - **Testing**: Jest with Supertest for API testing
-- **Linting**: ESLint (ES9 configuration)
+- **Linting**: ESLint (ECMAScript 2021 configuration)
 - **Development Tools**: Nodemon for hot-reloading
 
 ## Architecture Patterns
@@ -32,7 +32,9 @@ CAROMAR (Copy A Repository Or Merge All Repositories) is a web application for m
 
 ### JavaScript
 - Use ES6+ features: `const`/`let`, arrow functions, destructuring, template literals
+- Use 4-space indentation (configured in ESLint)
 - Use semicolons consistently
+- Use single quotes for strings (allow escaping)
 - Use camelCase for variables and functions
 - Use PascalCase for classes
 - Add JSDoc comments for functions with parameters and return types
@@ -91,7 +93,7 @@ npm run lint:fix     # Auto-fix linting errors
 
 ### Input Validation
 - Sanitize all user inputs on both client and server
-- Use the validation utilities in `/utils/validation.js`
+- Use the validation utilities in `utils/validation.js`
 - Validate GitHub usernames, repository names, and other inputs
 - Return appropriate HTTP status codes for validation errors
 
