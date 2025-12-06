@@ -9,7 +9,17 @@ http://localhost:3000/api
 ```
 
 ## Authentication
-All API endpoints require a GitHub Personal Access Token passed as a query parameter or in the request body.
+All API endpoints require a GitHub Personal Access Token for authentication.
+
+**Security Requirement:** Tokens must be transmitted via the `Authorization` header for GET requests, or in the request body for POST requests. **Never send tokens via query parameters** as they can be logged by servers, proxies, and browser history.
+
+**For GET requests:**
+```
+Authorization: Bearer ghp_your_token_here
+```
+
+**For POST requests:**
+Include the token in the JSON request body.
 
 Required scopes:
 - `repo` - Full control of private repositories
@@ -37,8 +47,8 @@ Get authenticated user information.
 
 **Endpoint:** `GET /user`
 
-**Parameters:**
-- `token` (required) - GitHub Personal Access Token
+**Headers:**
+- `Authorization: Bearer <token>` (required) - GitHub Personal Access Token
 
 **Response:**
 ```json
@@ -64,8 +74,8 @@ Validate a GitHub Personal Access Token and check permissions.
 
 **Endpoint:** `GET /validate-token`
 
-**Parameters:**
-- `token` (required) - GitHub Personal Access Token
+**Headers:**
+- `Authorization: Bearer <token>` (required) - GitHub Personal Access Token
 
 **Response:**
 ```json
@@ -86,9 +96,11 @@ Search for repositories owned by a user or organization.
 
 **Endpoint:** `GET /search-repos`
 
-**Parameters:**
+**Headers:**
+- `Authorization: Bearer <token>` (optional) - GitHub Personal Access Token (increases rate limits)
+
+**Query Parameters:**
 - `username` (required) - GitHub username or organization name
-- `token` (required) - GitHub Personal Access Token
 - `type` (optional) - Repository type: `all`, `owner`, `member`, `public`, `private` (default: `all`)
 - `sort` (optional) - Sort by: `updated`, `created`, `pushed`, `full_name` (default: `updated`)
 - `per_page` (optional) - Results per page (1-100, default: 100)
@@ -201,11 +213,13 @@ Get the contents of a specific file or directory in a repository.
 
 **Endpoint:** `GET /repo-content`
 
-**Parameters:**
+**Headers:**
+- `Authorization: Bearer <token>` (optional) - GitHub Personal Access Token (increases rate limits)
+
+**Query Parameters:**
 - `owner` (required) - Repository owner
 - `repo` (required) - Repository name
 - `path` (optional) - Path to file/directory (default: root)
-- `token` (optional) - GitHub Personal Access Token
 
 **Response:**
 ```json
@@ -288,11 +302,12 @@ The API implements rate limiting to prevent abuse:
 
 ## Security Best Practices
 
-1. Never commit your GitHub token to version control
-2. Use environment variables for sensitive configuration
-3. Regenerate tokens periodically
-4. Use fine-grained tokens with minimal required permissions
-5. Monitor your GitHub security settings regularly
+1. **Never transmit tokens via query parameters** - Always use the `Authorization` header for GET requests to prevent token leakage through server logs, proxy logs, and browser history
+2. Never commit your GitHub token to version control
+3. Use environment variables for sensitive configuration
+4. Regenerate tokens periodically
+5. Use fine-grained tokens with minimal required permissions
+6. Monitor your GitHub security settings regularly
 
 ## Examples
 
@@ -311,7 +326,11 @@ curl -X POST http://localhost:3000/api/fork-repo \
 ### Example: Search repositories using JavaScript
 
 ```javascript
-const response = await fetch('/api/search-repos?username=octocat&token=ghp_...');
+const response = await fetch('/api/search-repos?username=octocat', {
+  headers: {
+    'Authorization': 'Bearer ghp_your_token_here'
+  }
+});
 const data = await response.json();
 console.log(data.repos);
 ```

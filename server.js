@@ -96,7 +96,7 @@ app.get('/', (req, res) => {
  * Search repositories for a GitHub user or organization
  * @route GET /api/search-repos
  * @param {string} req.query.username - GitHub username or organization
- * @param {string} req.query.token - GitHub Personal Access Token
+ * @param {string} req.headers.authorization - GitHub Personal Access Token (Bearer token)
  * @param {string} [req.query.type=all] - Repository type filter
  * @param {string} [req.query.sort=updated] - Sort order
  * @param {number} [req.query.per_page=100] - Results per page
@@ -105,7 +105,11 @@ app.get('/', (req, res) => {
  */
 app.get('/api/search-repos', async (req, res) => {
     try {
-        let { username, token, type = 'all', sort = 'updated', per_page = 100, page = 1 } = req.query;
+        let { username, type = 'all', sort = 'updated', per_page = 100, page = 1 } = req.query;
+        
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         // Validate username
         username = sanitizeString(username);
@@ -401,7 +405,11 @@ app.post('/api/create-merged-repo', async (req, res) => {
 // API endpoint to get repository content for preview
 app.get('/api/repo-content', async (req, res) => {
     try {
-        let { owner, repo, path = '', token } = req.query;
+        let { owner, repo, path = '' } = req.query;
+        
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         // Validate inputs
         owner = sanitizeString(owner);
@@ -443,7 +451,9 @@ app.get('/api/repo-content', async (req, res) => {
 // Enhanced API endpoint to get user info with additional details
 app.get('/api/user', async (req, res) => {
     try {
-        const { token } = req.query;
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token || !isValidGitHubToken(token)) {
             return res.status(400).json({ error: 'Valid token is required' });
@@ -493,7 +503,9 @@ app.get('/api/user', async (req, res) => {
 // API endpoint to validate token permissions
 app.get('/api/validate-token', async (req, res) => {
     try {
-        const { token } = req.query;
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token) {
             return res.status(400).json({ error: 'Token is required' });

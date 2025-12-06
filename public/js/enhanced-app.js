@@ -228,7 +228,11 @@ class EnhancedCaromarApp {
 
         try {
             // First validate token permissions
-            const permissionResponse = await fetch(`/api/validate-token?token=${encodeURIComponent(token)}`);
+            const permissionResponse = await fetch('/api/validate-token', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const permissionData = await permissionResponse.json();
 
             if (!permissionData.valid) {
@@ -240,7 +244,11 @@ class EnhancedCaromarApp {
             }
 
             // Get full user info
-            const response = await fetch(`/api/user?token=${encodeURIComponent(token)}`);
+            const response = await fetch('/api/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await response.json();
 
             if (response.ok) {
@@ -355,7 +363,11 @@ class EnhancedCaromarApp {
             const repoType = document.getElementById('repo-type').value;
             const sortBy = document.getElementById('repo-sort').value;
 
-            const response = await fetch(`/api/search-repos?username=${encodeURIComponent(username)}&token=${encodeURIComponent(this.githubToken)}&type=${repoType}&sort=${sortBy}`);
+            const response = await fetch(`/api/search-repos?username=${encodeURIComponent(username)}&type=${repoType}&sort=${sortBy}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.githubToken}`
+                }
+            });
             const data = await response.json();
 
             if (response.ok) {
