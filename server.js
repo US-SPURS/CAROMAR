@@ -22,6 +22,7 @@ const {
     isValidRepositoryName,
     isValidGitHubToken,
     sanitizeString,
+    isValidRepoPath,
     validatePagination,
     validateSort
 } = require('./utils/validation');
@@ -422,6 +423,10 @@ app.get('/api/repo-content', async (req, res) => {
         
         if (!repo || !isValidRepositoryName(repo)) {
             return res.status(400).json({ error: 'Valid repository name is required' });
+        }
+
+        if (!isValidRepoPath(path)) {
+            return res.status(400).json({ error: 'Valid repository path is required' });
         }
 
         const headers = token ? {

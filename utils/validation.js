@@ -60,6 +60,34 @@ function sanitizeString(input) {
 }
 
 /**
+ * Validate GitHub repository path
+ * Allows nested paths within a repository while preventing path traversal.
+ * @param {string} repoPath - Path within the repository
+ * @returns {boolean} - True if valid
+ */
+function isValidRepoPath(repoPath) {
+    // Empty or undefined path is allowed (root of the repository)
+    if (repoPath === undefined || repoPath === null || repoPath === '') {
+        return true;
+    }
+    if (typeof repoPath !== 'string') {
+        return false;
+    }
+    // Disallow backslashes and leading slash
+    if (repoPath.startsWith('/') || repoPath.includes('\\')) {
+        return false;
+    }
+    // Disallow any path traversal segment
+    const segments = repoPath.split('/');
+    if (segments.some(segment => segment === '..')) {
+        return false;
+    }
+    // Allow only common filename/path characters
+    const repoPathRegex = /^[a-zA-Z0-9._\/-]{1,1000}$/;
+    return repoPathRegex.test(repoPath);
+}
+
+/**
  * Validate pagination parameters
  * @param {number} page - Page number
  * @param {number} perPage - Items per page
@@ -102,6 +130,7 @@ module.exports = {
     isValidRepositoryName,
     isValidGitHubToken,
     sanitizeString,
+    isValidRepoPath,
     validatePagination,
     validateSort,
     isValidEmail
