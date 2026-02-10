@@ -667,6 +667,12 @@ app.use((err, req, res, _next) => {
     });
 });
 
-app.listen(PORT, () => {
-    logger.info(`CAROMAR server is running on http://localhost:${PORT}`);
-});
+// Export the app for Netlify Functions
+module.exports = app;
+
+// Only start the server if running locally (not in serverless environment)
+if (require.main === module) {
+      app.listen(PORT, () => {
+              logger.info(`CAROMAR server is running on http://localhost:${PORT}`);
+      });
+}
