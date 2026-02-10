@@ -76,9 +76,9 @@ app.use((req, res, next) => {
 
 app.use('/api/', apiLimiter);
 
-// Set view engine
+// Set view engine - use VIEWS_PATH for Netlify serverless compatibility
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', process.env.VIEWS_PATH || path.join(__dirname, 'views'));
 
 /**
  * Routes
@@ -617,22 +617,17 @@ app.post('/api/compare-repos', async (req, res) => {
 });
 
 /**
- * Health check endpoint with performance metrics
+ * Health check endpoint - optimized for Netlify serverless
  * @route GET /api/health
  * @returns {Object} Health status and metrics
  */
 app.get('/api/health', (req, res) => {
-    const healthStatus = performanceMonitor.getHealthStatus();
     res.json({
-        status: healthStatus.status,
+        status: 'healthy',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
+        environment: process.env.NETLIFY ? 'netlify-serverless' : 'local',
         version: require('./package.json').version,
-        performance: {
-            recentErrorRate: healthStatus.recentErrorRate,
-            recentAvgDuration: healthStatus.recentAvgDuration
-        },
-        issues: healthStatus.issues
+        uptime: process.uptime()
     });
 });
 
@@ -655,7 +650,7 @@ app.get('/api/metrics', (req, res) => {
 // Error handling middleware for undefined routes
 app.use((req, res) => {
     logger.warn('Route not found', { path: req.path, method: req.method });
-    res.status(404).json({ error: 'Route not found' });
+    res.status(404).json({ error: 'Route not found', path: req.path });
 });
 
 // Global error handling middleware
@@ -663,7 +658,7 @@ app.use((err, req, res, _next) => {
     logger.error('Unhandled error', err);
     res.status(500).json({ 
         error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? err.message : undefined
+        message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
     });
 });
 
@@ -672,7 +667,7 @@ module.exports = app;
 
 // Only start the server if running locally (not in serverless environment)
 if (require.main === module) {
-      app.listen(PORT, () => {
-              logger.info(`CAROMAR server is running on http://localhost:${PORT}`);
-      });
+    app.listen(PORT, () => {
+        logger.info(`CAROMAR server is running on http://localhost:${PORT}`);
+    });
 }
