@@ -1,9 +1,22 @@
 # CAROMAR
 **C**opy **A** **R**epository **O**r **M**erge **A**ll **R**epositories
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/YOUR-SITE-ID/deploy-status)](https://app.netlify.com/sites/YOUR-SITE-NAME/deploys)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/US-SPURS/CAROMAR)
+
 A powerful web application that allows users to efficiently manage GitHub repositories by either forking individual repositories or merging multiple repositories into a single repository with organized folder structure.
 
 ![CAROMAR Interface](https://github.com/user-attachments/assets/a044e51e-4b80-4165-ada5-611b47eab378)
+
+## 🚀 Quick Deploy
+
+Deploy CAROMAR to Netlify with one click:
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/US-SPURS/CAROMAR)
+
+**[📖 Full Deployment Guide](./NETLIFY_DEPLOYMENT.md)** | **[✅ Deployment Fixes](./DEPLOYMENT_FIXES.md)**
+
+---
 
 ## Features
 
@@ -49,14 +62,16 @@ A powerful web application that allows users to efficiently manage GitHub reposi
 - Intuitive workflow with step-by-step guidance
 - Error notifications and success confirmations
 
+---
+
 ## Installation & Setup
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+- Node.js (v18 or higher)
+- npm (v9 or higher)
 - GitHub Personal Access Token
 
-### Quick Start
+### Local Development
 
 1. **Clone the repository:**
    ```bash
@@ -69,18 +84,23 @@ A powerful web application that allows users to efficiently manage GitHub reposi
    npm install
    ```
 
-3. **Set up environment variables:**
+3. **Set up environment variables (optional):**
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration (optional for basic usage)
+   # Edit .env with your configuration
    ```
 
-4. **Start the application:**
+4. **Validate deployment configuration:**
+   ```bash
+   npm run validate
+   ```
+
+5. **Start the application:**
    ```bash
    npm start
    ```
 
-5. **Open your browser:**
+6. **Open your browser:**
    Navigate to `http://localhost:3000`
 
 ### Development Mode
@@ -89,6 +109,36 @@ For development with auto-restart on file changes:
 ```bash
 npm run dev
 ```
+
+### Deployment
+
+#### Deploy to Netlify (Recommended)
+
+**Option 1: One-Click Deploy**
+1. Click the "Deploy to Netlify" button above
+2. Configure your site name
+3. Deploy!
+
+**Option 2: Manual Deploy with CLI**
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Deploy
+netlify deploy --prod
+```
+
+**Option 3: GitHub Integration**
+1. Push to GitHub
+2. Connect repository in Netlify Dashboard
+3. Automatic deployments on every push
+
+**📖 See [NETLIFY_DEPLOYMENT.md](./NETLIFY_DEPLOYMENT.md) for detailed instructions**
+
+---
 
 ## Usage Guide
 
@@ -127,6 +177,8 @@ Choose between two operation modes:
 - Access direct links to newly created repositories
 - Review any errors or issues encountered
 
+---
+
 ## GitHub Token Setup
 
 To use CAROMAR, you need a GitHub Personal Access Token:
@@ -134,60 +186,149 @@ To use CAROMAR, you need a GitHub Personal Access Token:
 1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
 3. Select appropriate scopes:
-   - `repo` (for repository access)
-   - `user` (for user information)
+   - ✅ `repo` (for repository access)
+   - ✅ `user` (for user information)
 4. Copy the generated token
 5. Enter it in the CAROMAR application
 
 **Security Note:** Your token is stored locally in your browser and used only for GitHub API calls. It's never sent to external servers.
 
+---
+
 ## API Endpoints
 
 The application provides several REST API endpoints:
 
-- `GET /api/user` - Validate token and get user information
+### Authentication & User
+- `GET /api/user` - Get authenticated user information
+- `GET /api/validate-token` - Validate GitHub token and permissions
+
+### Repository Management
 - `GET /api/search-repos` - Search repositories for a user
 - `POST /api/fork-repo` - Fork a specific repository
+- `POST /api/create-merged-repo` - Create merged repository
+- `GET /api/repo-content` - Get repository content preview
+
+### Analytics & Comparison
+- `POST /api/analyze-repos` - Analyze repository statistics
+- `POST /api/compare-repos` - Compare multiple repositories
+
+### System
+- `GET /api/health` - Health check endpoint
+- `GET /api/metrics` - Performance metrics
+
+**📖 See [API.md](./API.md) for detailed API documentation**
+
+---
 
 ## Technology Stack
 
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Backend:** Node.js, Express.js
-- **Templating:** EJS
-- **HTTP Client:** Axios
-- **GitHub Integration:** GitHub REST API v3
+### Frontend
+- HTML5, CSS3, Vanilla JavaScript
+- EJS templating engine
+- Responsive design
+- Real-time progress tracking
+
+### Backend
+- Node.js (v18+)
+- Express.js
+- Serverless-ready architecture
+- RESTful API design
+
+### Infrastructure
+- Netlify Functions (Serverless)
+- Netlify CDN (Static assets)
+- GitHub REST API v3 integration
+
+### Development
+- Jest (Testing)
+- ESLint (Linting)
+- Nodemon (Development)
+
+---
 
 ## Project Structure
 
 ```
 CAROMAR/
-├── public/
+├── public/                    # Static assets (served from CDN)
 │   ├── css/
-│   │   ├── style.css          # Application styling
+│   │   ├── style.css         # Application styling
 │   │   └── icons-fallback.css # Icon fallbacks
-│   └── js/
-│       ├── app.js             # Basic frontend implementation
-│       └── enhanced-app.js    # Full-featured frontend (used in production)
+│   ├── js/
+│   │   ├── app.js            # Basic frontend
+│   │   └── enhanced-app.js   # Full-featured frontend
+│   ├── robots.txt            # SEO crawler rules
+│   └── sitemap.xml           # SEO sitemap
 ├── views/
-│   └── index.ejs              # Main HTML template
+│   └── index.ejs             # Main HTML template
+├── functions/
+│   └── server.js             # Netlify serverless wrapper
 ├── utils/
-│   ├── analytics.js           # Repository analytics utilities
-│   ├── comparison.js          # Repository comparison utilities
-│   ├── logger.js              # Logging utility
-│   └── validation.js          # Input validation utilities
+│   ├── analytics.js          # Repository analytics
+│   ├── comparison.js         # Repository comparison
+│   ├── logger.js             # Logging utility
+│   ├── validation.js         # Input validation
+│   ├── performance.js        # Performance monitoring
+│   └── security.js           # Security utilities
+├── scripts/
+│   └── validate-deployment.js # Pre-deploy validation
 ├── tests/
-│   ├── app.test.js            # API endpoint tests
-│   └── utils.test.js          # Utility function tests
-├── server.js                  # Express server and API endpoints
-├── package.json               # Project dependencies
-├── jest.config.js             # Jest testing configuration
-├── eslint.config.js           # ESLint configuration
-├── .env.example               # Environment variables template
-├── LICENSE                    # MIT License
-└── README.md                  # This file
+│   ├── app.test.js           # API tests
+│   └── utils.test.js         # Utility tests
+├── server.js                 # Express application
+├── package.json              # Dependencies & scripts
+├── netlify.toml              # Netlify configuration
+├── .nvmrc                    # Node version
+├── jest.config.js            # Jest configuration
+├── eslint.config.js          # ESLint configuration
+├── .env.example              # Environment template
+├── README.md                 # This file
+├── NETLIFY_DEPLOYMENT.md     # Deployment guide
+├── DEPLOYMENT_FIXES.md       # Fixes summary
+├── SETUP.md                  # Setup guide
+├── DEVELOPMENT.md            # Development guide
+├── API.md                    # API documentation
+└── LICENSE                   # MIT License
 ```
 
+---
+
+## Development
+
+### Available Scripts
+
+```bash
+npm start              # Start production server
+npm run dev            # Start development server with auto-reload
+npm test               # Run tests
+npm run test:watch     # Run tests in watch mode
+npm run test:coverage  # Generate coverage report
+npm run lint           # Check code quality
+npm run lint:fix       # Fix linting issues
+npm run build          # Build for production
+npm run validate       # Validate deployment configuration
+npm run predeploy      # Pre-deployment checks (lint + test)
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Watch mode for development
+npm run test:watch
+```
+
+---
+
 ## Contributing
+
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -195,19 +336,74 @@ CAROMAR/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+**📖 See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines**
+
+---
+
+## Documentation
+
+- **[README.md](./README.md)** - This file (Overview & Quick Start)
+- **[NETLIFY_DEPLOYMENT.md](./NETLIFY_DEPLOYMENT.md)** - Netlify deployment guide
+- **[DEPLOYMENT_FIXES.md](./DEPLOYMENT_FIXES.md)** - Deployment fixes summary
+- **[SETUP.md](./SETUP.md)** - Detailed setup instructions
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
+- **[API.md](./API.md)** - API documentation
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
+- **[SECURITY.md](./SECURITY.md)** - Security policy
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history
+
+---
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
 
 ## Support
 
+### Get Help
+
 If you encounter any issues or have questions:
-1. Check the GitHub Issues page
-2. Create a new issue with detailed information
-3. Include error messages and steps to reproduce
+
+1. **Check Documentation:**
+   - [Setup Guide](./SETUP.md)
+   - [Deployment Guide](./NETLIFY_DEPLOYMENT.md)
+   - [API Documentation](./API.md)
+
+2. **Search Issues:**
+   - Check [existing issues](https://github.com/US-SPURS/CAROMAR/issues)
+
+3. **Create New Issue:**
+   - [Report a bug](https://github.com/US-SPURS/CAROMAR/issues/new)
+   - Include error messages and steps to reproduce
+
+### Community
+
+- **GitHub Discussions:** Ask questions and share ideas
+- **Issue Tracker:** Report bugs and request features
+
+---
 
 ## Acknowledgments
 
-- GitHub API for repository management capabilities
-- Font Awesome for icons
+- **GitHub API** for repository management capabilities
+- **Netlify** for serverless hosting platform
+- **Font Awesome** for icons
+- **Express.js** for backend framework
 - Modern web standards for responsive design
+
+---
+
+## Status
+
+✅ **Production Ready**  
+✅ **Deployment Tested**  
+✅ **Fully Documented**  
+✅ **Security Hardened**
+
+---
+
+**Built with ❤️ by US-SPURS**
+
+**Last Updated:** February 10, 2026
